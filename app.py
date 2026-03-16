@@ -5,6 +5,7 @@ import os
 import base64
 from fastapi.responses import JSONResponse
 from astrapy import DataAPIClient
+from apscheduler.schedulers.background import BackgroundScheduler
 from model import User,User2,User3,Login,Products,Self_measurement,Professional_measurement,CartPaymentRequest,PaymentRequest,DeliveryRequest
 from utility import hashedpassword,verifyhash
 
@@ -42,6 +43,16 @@ Self_measurement_collection = db.create_collection("self_measurement")
 professional_measurement_collection = db.create_collection("professional_measurement")
 print(f"Connected to Astra DB: {db.list_collection_names()}")
 
+def ping_database():
+    try:
+        collections = db.list_collection_names()
+        print(f"Database ping successful: {len(collections)} collections found")
+    except Exception as e:
+        print(f"Database ping failed: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(ping_database, 'interval', minutes=5)
+scheduler.start()
 
 @app.get("/")
 def Home():
