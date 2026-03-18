@@ -6,6 +6,7 @@ import secrets
 from dotenv import load_dotenv
 from htmlmessage import mainhtml
 
+
 load_dotenv()
 
 
@@ -18,40 +19,49 @@ def hashedpassword(password):
 def verifyhash(hashedpassword,password):
     value = ph.verify(hashedpassword,password)
     return value
-# ------------------------------
-SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_PORT = str(os.getenv("SMTP_PORT"))
-SMTP_USERNAME = os.getenv("SMTP_USERNAME")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+# # ------------------------------
+# SMTP_HOST = os.getenv("SMTP_HOST")
+# SMTP_PORT = str(os.getenv("SMTP_PORT"))
+# SMTP_USERNAME = os.getenv("SMTP_USERNAME")
+# SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+# SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 #  Helper: Send Verification Email
 # ------------------------------
 # ------------------------------
 # Helper: Send Verification Email (HTML version)
-# ------------------------------
-def send_verification_email(to_email: str, otp: str):
-    msg = EmailMessage()
-    msg["From"] = SENDER_EMAIL
-    msg["To"] = "mosesgodstime344@gmail.com"
-    msg["Subject"] = "Verify your email"
+# # ------------------------------
+# def send_verification_email(to_email: str, otp: str):
+#     msg = EmailMessage()
+#     msg["From"] = SENDER_EMAIL
+#     msg["To"] = "mosesgodstime344@gmail.com"
+#     msg["Subject"] = "Verify your email"
 
-    # Add plain text fallback
-    msg.set_content(f"Your OTP is: {otp}")
+#     # Add plain text fallback
+#     msg.set_content(f"Your OTP is: {otp}")
 
-    # Add HTML content using your mainhtml function
-    msg.add_alternative(mainhtml(otp), subtype="html")
+#     # Add HTML content using your mainhtml function
+#     msg.add_alternative(mainhtml(otp), subtype="html")
 
-    try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()  # handshake
-            # Port 2525: STARTTLS not supported, do NOT call starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
-        print(f"Email sent to {to_email}")
-        return True
-    except Exception as e:
-        print("Error sending email:", e)
-        return False
+#     try:
+#         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+#             server.ehlo()  # handshake
+#             # Port 2525: STARTTLS not supported, do NOT call starttls()
+#             server.login(SMTP_USERNAME, SMTP_PASSWORD)
+#             server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
+#         print(f"Email sent to {to_email}")
+#         return True
+#     except Exception as e:
+#         print("Error sending email:", e)
+#         return False
+# api_key = os.getenv("RESEND_API_KEY")
+# resend = resend.Resend(api_key)
+# r = resend.Emails.send({
+#   "from": "onboarding@resend.dev",
+#   "to": "inyanggodstime63@gmail.com",
+#   "subject": "Hello World",
+#   "html": "<p>Congrats on sending your <strong>first email</strong>!</p>"
+# })
+# print(r)
         
 def generate_otp():
     """ generate a secure a 6 digit code..."""

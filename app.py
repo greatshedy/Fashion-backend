@@ -7,8 +7,8 @@ from fastapi.responses import JSONResponse
 from astrapy import DataAPIClient
 from apscheduler.schedulers.background import BackgroundScheduler
 from model import User,User2,User3,Login,Products,Self_measurement,Professional_measurement,CartPaymentRequest,PaymentRequest,DeliveryRequest
-from utility import hashedpassword,verifyhash
-
+from utility import hashedpassword,verifyhash,generate_otp
+from index import send_email
 
 load_dotenv()
 
@@ -68,7 +68,7 @@ def create_user(user: User):
   print(data)
   data["password"] = hashedpassword(data["password"])
   userid = user_collection.insert_one(data).inserted_id
-  # send_verification_email(data["email"], "Verify Email")
+  
   return JSONResponse(content={"message":"user created sucessfully","user_id":userid},status_code=status.HTTP_201_CREATED)
 
 
@@ -97,9 +97,10 @@ def login_user(login_user: Login):
   user = user_collection.find_one({"email":data["email"]})
   if user:
     if verifyhash(user["password"],data["password"]):
-      # otp = generate_otp()
-      user_collection.update_one({"email":data["email"]},{"$set":{"is_active":True}})
-      # send_verification_email(data["email"], "Verify Email", user["id"])
+      otp = generate_otp()
+      user_collection.update_one({"email":data["email"]},{"$set":{"otp":otp}})
+      html_content = f"<h2>Your Login OTP</h2><p>Your OTP is: <strong>{otp}</strong></p>"
+      send_email(data["email"], "Verify Email", html_content)
       return JSONResponse(content={"message":"user verified sucessfully"},status_code=status.HTTP_200_OK)
     else:
       return JSONResponse(content={"message":"invalid password"},status_code=status.HTTP_401_UNAUTHORIZED)
@@ -116,9 +117,10 @@ def login_designer(login_designer:Login):
   designer = designer_collection.find_one({"email":data["email"]})
   if designer:
     if verifyhash(designer["password"],data["password"]):
-      # otp = generate_otp()
-      designer_collection.update_one({"_email":data["email"]}, {"$set":{"is_active":True}})
-      # send_verification_email(data["email"], "Verify Email",    designer["id"])
+      otp = generate_otp()
+      designer_collection.update_one({"email":data["email"]}, {"$set":{"otp":otp}})
+      html_content = f"<h2>Your Login OTP</h2><p>Your OTP is: <strong>{otp}</strong></p>"
+      send_email(data["email"], "Verify Email", html_content)
       return JSONResponse(content={"message":"designer verified sucessfully"},status_code=status.HTTP_200_OK)
     else:
       return JSONResponse(content={"message":"invalid password"},status_code=status.HTTP_401_UNAUTHORIZED)
