@@ -5,7 +5,6 @@ import os
 import base64
 from fastapi.responses import JSONResponse
 from astrapy import DataAPIClient
-from apscheduler.schedulers.background import BackgroundScheduler
 from model import User,User2,User3,Login,Products,Self_measurement,Professional_measurement,CartPaymentRequest,PaymentRequest,DeliveryRequest
 from utility import hashedpassword,verifyhash,generate_otp
 from index import send_email
@@ -43,16 +42,14 @@ Self_measurement_collection = db.create_collection("self_measurement")
 professional_measurement_collection = db.create_collection("professional_measurement")
 print(f"Connected to Astra DB: {db.list_collection_names()}")
 
-def ping_database():
+@app.get("/keep-alive")
+def keep_alive():
     try:
+        # Ping the DB just to keep it awake!
         collections = db.list_collection_names()
-        print(f"Database ping successful: {len(collections)} collections found")
+        return JSONResponse(content={"message": "Server and DB are awake!"}, status_code=status.HTTP_200_OK)
     except Exception as e:
-        print(f"Database ping failed: {e}")
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(ping_database, 'interval', minutes=5)
-scheduler.start()
+        return JSONResponse(content={"message": f"DB ping failed: {e}"}, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @app.get("/")
 def Home():
