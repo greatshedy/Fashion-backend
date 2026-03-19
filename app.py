@@ -8,6 +8,7 @@ from astrapy import DataAPIClient
 from model import User,User2,User3,Login,Products,Self_measurement,Professional_measurement,CartPaymentRequest,PaymentRequest,DeliveryRequest
 from utility import hashedpassword,verifyhash,generate_otp
 from index import send_email
+import requests
 
 load_dotenv()
 
@@ -350,15 +351,31 @@ def add_to_cart(user_id: str, product_id: str):
 def payment(request: PaymentRequest):
   user = user_collection.find_one({"_id": request.user_id})
   if user:
-    # Save the payment details in the user's document
-    user_collection.update_one(
-        {"_id": request.user_id},
-        {
-            "$set": {"last_payment": request.payment_details},
-            "$push": {"payments": request.model_dump()}
-        }
-    )
-    return JSONResponse({"message":"payment done sucessfully"},status_code=status.HTTP_201_CREATED)
+    flutterwave_secret = os.getenv("FLUTTERWAVE_SECRETE_KEY")
+    headers = {
+        "Authorization": f"Bearer {flutterwave_secret}",
+        "Content-Type": "application/json"
+    }
+    verify_url = f"https://api.flutterwave.com/v3/transactions/{request.transaction_id}/verify"
+    
+    try:
+        response = requests.get(verify_url, headers=headers)
+        response_data = response.json()
+        
+        if response_data.get("status") == "success" and response_data.get("data", {}).get("status") == "successful":
+            # Save the payment details in the user's document
+            user_collection.update_one(
+                {"_id": request.user_id},
+                {
+                    "$set": {"last_payment": request.payment_details},
+                    "$push": {"payments": request.model_dump()}
+                }
+            )
+            return JSONResponse({"message":"payment verified and done sucessfully"},status_code=status.HTTP_201_CREATED)
+        else:
+            return JSONResponse({"message":"payment verification failed"},status_code=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return JSONResponse({"message":f"Error verifying payment: {str(e)}"},status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
   else:
     return JSONResponse({"message":"user not found"},status_code=status.HTTP_404_NOT_FOUND)
     

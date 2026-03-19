@@ -101,6 +101,7 @@ class PaymentRequest(BaseModel):
     user_id: str
     product_id: str
     payment_details: dict
+    transaction_id: str
 
 class DeliveryRequest(BaseModel):
     user_id: str
